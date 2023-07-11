@@ -117,7 +117,7 @@
       </div>
       <div class="text-center">
         <b-button type="submit" variant="dark" style="width: 100%"
-          >SAVE <i class="fas fa-arrow-right"></i
+          >SAVE &nbsp;&nbsp;<i class="fas fa-arrow-right"></i
         ></b-button>
       </div>
     </form>
