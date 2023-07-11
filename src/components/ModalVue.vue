@@ -72,7 +72,7 @@
       </ValidationProvider>
       <div class="d-flex justify-content-between">
         <h5>Payments <i class="fas fa-dollar-sign"></i></h5>
-        <b-button @click="addNewPayment" variant="dark"
+        <b-button @click="addNewPayment" variant="dark" :disabled="!areAllFieldsFilled"
           >ADD &nbsp;&nbsp;<i class="fas fa-circle-plus"></i
         ></b-button>
       </div>
@@ -163,6 +163,16 @@ export default {
   name: "ModalVue",
   components: {
     ValidationProvider,
+  },
+  computed: {
+    areAllFieldsFilled() {
+      for (const item of this.payments) {
+        if (!item.id || !item.amount || !item.date) {
+          return false;
+        }
+      }
+      return true;
+    },
   },
   props: ["clientSelect", "paymentsSelect"],
   data() {
