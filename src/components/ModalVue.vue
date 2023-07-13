@@ -5,6 +5,8 @@
     ref="ModalClient"
     @hidden="$emit('hidden')"
     hide-footer
+    header-bg-variant="dark"
+    header-text-variant="light"
     title="ADD CLIENT"
   >
     <!-- Contenido del modal -->
@@ -13,102 +15,113 @@
       <h3>Personal information <i class="fas fa-user-plus"></i></h3>
       <input type="hidden" id="id" v-model="client.id" /><br />
       <ValidationProvider v-slot="v" rules="required|alpha" class="mb-4">
-        <span class="text-danger mb-4">{{ v.errors[0] }}</span>
-        <b-form-input
-          type="text"
-          id="name"
-          v-model="client.name"
-          placeholder="Name"
-          :class="{ 'is-invalid': v.errors.length > 0 }"
-          required
-        /><br />
+        <b-form-group label="Name:"
+              valid-feedback="Thank you!"
+>
+          <span class="text-danger mb-4">{{ v.errors[0] }}</span>
+          <b-form-input
+            type="text"
+            id="name"
+            v-model="client.name"
+            placeholder="Name"
+            :class="{ 'is-invalid': v.errors.length > 0 }"
+            required
+          /><br />
+        </b-form-group>
       </ValidationProvider>
       <ValidationProvider v-slot="v" rules="required" class="mb-4">
-        <span class="text-danger mb-4">{{ v.errors[0] }}</span>
-        <b-form-input
-          type="date"
-          id="dob"
-          v-model="client.dob"
-          :class="{ 'is-invalid': v.errors.length > 0 }"
-          required
-        /><br />
+        <b-form-group label="Name:">
+          <span class="text-danger mb-4">{{ v.errors[0] }}</span>
+          <b-form-input
+            type="date"
+            id="dob"
+            v-model="client.dob"
+            :class="{ 'is-invalid': v.errors.length > 0 }"
+            required
+          /><br />
+        </b-form-group>
       </ValidationProvider>
-      <ValidationProvider
-        v-slot="v"
-        rules="required|positive|length:9"
-        class="mb-4"
-      >
-        <span class="text-danger mb-4">{{ v.errors[0] }}</span>
+      <b-form-group label="Phone:">
         <b-form-input
-          type="number"
+          type="text"
           id="phone"
           v-model="client.phone"
           placeholder="Phone"
-          :class="{ 'is-invalid': v.errors.length > 0 }"
+          v-mask="'(+51) ###-###-##'"
           required
         /><br />
-      </ValidationProvider>
+      </b-form-group>
+
       <ValidationProvider v-slot="v" rules="required|email" class="mb-4">
-        <span class="text-danger mb-4">{{ v.errors[0] }}</span>
-        <b-form-input
-          type="email"
-          id="email"
-          v-model="client.email"
-          placeholder="Email"
-          :class="{ 'is-invalid': v.errors.length > 0 }"
-          required
-        /><br />
+        <b-form-group label="Email:">
+          <span class="text-danger mb-4">{{ v.errors[0] }}</span>
+          <b-form-input
+            type="email"
+            id="email"
+            v-model="client.email"
+            placeholder="Email"
+            :class="{ 'is-invalid': v.errors.length > 0 }"
+            required
+          /><br />
+        </b-form-group>
       </ValidationProvider>
       <ValidationProvider v-slot="v" rules="required" class="mb-4">
-        <span class="text-danger mb-4">{{ v.errors[0] }}</span>
-        <b-form-input
-          type="text"
-          id="address"
-          v-model="client.address"
-          placeholder="Address"
-          :class="{ 'is-invalid': v.errors.length > 0 }"
-          required
-        /><br />
+        <b-form-group label="Address:">
+          <span class="text-danger mb-4">{{ v.errors[0] }}</span>
+          <b-form-input
+            type="text"
+            id="address"
+            v-model="client.address"
+            placeholder="Address"
+            :class="{ 'is-invalid': v.errors.length > 0 }"
+            required
+          /><br />
+        </b-form-group>
       </ValidationProvider>
       <div class="d-flex justify-content-between">
         <h5>Payments <i class="fas fa-dollar-sign"></i></h5>
-        <b-button @click="addNewPayment" variant="dark" :disabled="!areAllFieldsFilled"
+        <b-button
+          @click="addNewPayment"
+          variant="dark"
+          :disabled="!areAllFieldsFilled"
           >ADD &nbsp;&nbsp;<i class="fas fa-circle-plus"></i
         ></b-button>
       </div>
       <div class="my-4" v-for="(item, index) in payments" :key="index">
         <input type="hidden" v-model="item.COD" /><br />
         <ValidationProvider v-slot="v" rules="required|positive" class="mb-4">
-          <span class="text-danger mb-4">{{ v.errors[0] }}</span>
-          <input
-            class="form-control"
-            type="number"
-            v-model="item.id"
-            placeholder="Transaction"
-            :class="{ 'is-invalid': v.errors.length > 0 }"
-            required
-          /><br />
+          <b-form-group label="ID transaction:">
+            <span class="text-danger mb-4">{{ v.errors[0] }}</span>
+            <input
+              class="form-control"
+              type="number"
+              v-model="item.id"
+              placeholder="Transaction"
+              :class="{ 'is-invalid': v.errors.length > 0 }"
+              required
+            /><br />
+          </b-form-group>
         </ValidationProvider>
-        <ValidationProvider v-slot="v" rules="required|positive" class="mb-4">
-          <span class="text-danger mb-4">{{ v.errors[0] }}</span>
-          <input
-            type="number"
-            class="form-control"
-            v-model="item.amount"
-            placeholder="Amount"
-            :class="{ 'is-invalid': v.errors.length > 0 }"
-            required
-          /><br />
-        </ValidationProvider>
+          <b-form-group label="Amount:">
+        <money
+          v-model="item.amount"
+          v-bind="money"
+          class="form-control"
+        ></money>
+        {{ price }}
+          </b-form-group>
+        <br />
         <ValidationProvider v-slot="v" rules="required" class="mb-4">
-          <span class="text-danger mb-4">{{ v.errors[0] }}</span>
-          <b-form-input
-            type="date"
-            id="dob"
-            v-model="item.date"
-            :class="{ 'is-invalid': v.errors.length > 0 }"
-            required
-          /><br />
+          <b-form-group label="Date:">
+            <span class="text-danger mb-4">{{ v.errors[0] }}</span>
+            <b-form-input
+              type="date"
+              id="dob"
+              v-model="item.date"
+              :class="{ 'is-invalid': v.errors.length > 0 }"
+              required
+            /><br />
+          </b-form-group>
         </ValidationProvider>
         <b-button variant="dark" @click="deletePayment(index, item.COD)"
           >Eliminar <i class="fas fa-delete-left"></i
@@ -177,6 +190,7 @@ export default {
   props: ["clientSelect", "paymentsSelect"],
   data() {
     return {
+      myInputModel: "",
       modalVisible: false,
       payments: [{ cod: 0, id: null, amount: null, date: null }],
       client: {
@@ -185,6 +199,15 @@ export default {
         name: null,
         phone: null,
         email: null,
+      },
+      price: "",
+      money: {
+        decimal: ",",
+        thousands: ".",
+        prefix: "$ ",
+        suffix: " USD",
+        precision: 2,
+        masked: false,
       },
     };
   },
@@ -204,9 +227,10 @@ export default {
       const parsedPayments = this.payments.map((payment) => ({
         cod: parseInt(payment.COD),
         id: parseInt(payment.id),
-        amount: parseInt(payment.amount),
+        amount: payment.amount,
         date: new Date(payment.date).toISOString().slice(0, 10), // Corregir el formato de fecha
       }));
+      console.log(parsedPayments);
       // Crear un objeto con los datos del formulario
       const formData = {
         id: this.client.id,
@@ -233,7 +257,7 @@ export default {
             this.modalVisible = false;
             this.$emit("hidden");
 
-            window.location.reload();
+            this.$parent.fetchClientes();
           })
           .catch((error) => {
             // Manejar el error si ocurre

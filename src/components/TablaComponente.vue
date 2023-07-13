@@ -1,38 +1,37 @@
 <template>
   <div>
-    <table class="table">
-      <thead class="table-dark">
-        <tr>
-          <th scope="col">Nombre</th>
-          <th scope="col">Birthday</th>
-          <th scope="col">Phone</th>
-          <th scope="col">Email</th>
-          <th scope="col">Address</th>
-          <th scope="col">Payments</th>
-          <th scope="col">Total</th>
-          <th scope="col">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="cliente in clientes" :key="cliente.id">
-          <td>{{ cliente.name }}</td>
-          <td>{{ cliente.dob }}</td>
-          <td>{{ cliente.phone }}</td>
-          <td>{{ cliente.email }}</td>
-          <td>{{ cliente.address }}</td>
-          <td>{{ cliente.npayments }}</td>
-          <td>{{ cliente.total }}</td>
-          <td>
-            <b-button variant="success" @click="editarCliente(cliente.id)"
-              >Editar <i class="fas fa-edit"></i></b-button
-            >&nbsp;&nbsp;
-            <b-button variant="danger" @click="eliminarCliente(cliente.id)"
-              >Eliminar <i class="fas fa-trash"></i></b-button
-            >
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <b-table striped hover :items="clientes" :fields="fields" tbody-class="table-info" thead-class="table-dark" bordered>
+      <template #cell(nombre)="row">
+        {{ row.item.name }}
+      </template>
+      <template #cell(birthday)="row">
+        {{ row.item.dob }}
+      </template>
+      <template #cell(phone)="row">
+        {{ row.item.phone }}
+      </template>
+      <template #cell(email)="row">
+        {{ row.item.email }}
+      </template>
+      <template #cell(address)="row">
+        {{ row.item.address }}
+      </template>
+      <template #cell(payments)="row">
+        {{ row.item.npayments }}
+      </template>
+      <template #cell(total)="row">
+        {{ row.item.total }}
+      </template>
+      <template #cell(acciones)="row">
+        <b-button variant="success" @click="editarCliente(row.item.id)">
+          Editar <i class="fas fa-edit"></i>
+        </b-button>
+        <b-button variant="danger" @click="eliminarCliente(row.item.id)">
+          Eliminar <i class="fas fa-trash"></i>
+        </b-button>
+      </template>
+    </b-table>
+    
     <ModalVue
       v-if="ModalVisible"
       @hidden="ModalVisible = false"
@@ -46,13 +45,22 @@
 <script>
 import axios from "axios";
 import ModalVue from "./ModalVue.vue";
-
 export default {
   components: {
     ModalVue,
   },
   data() {
     return {
+      fields: [
+        { key: 'nombre', label: 'Nombre' },
+        { key: 'birthday', label: 'Birthday' },
+        { key: 'phone', label: 'Phone' },
+        { key: 'email', label: 'Email' },
+        { key: 'address', label: 'Address' },
+        { key: 'payments', label: 'Payments' },
+        { key: 'total', label: 'Total' },
+        { key: 'acciones', label: 'Acciones' }
+      ],
       clientes: [],
       payments: [],
       borrados: [],
@@ -69,18 +77,19 @@ export default {
         .get("http://127.0.0.1:8000/api/clientes")
         .then((response) => {
           this.clientes = response.data;
+          console.log(this.clientes)
         })
         .catch((error) => {
           console.log(error);
         });
     },
     editarCliente(clienteId) {
-     // this.$emit("hidden");
+      // this.$emit("hidden");
       axios
         .get(`http://127.0.0.1:8000/api/buscar/${clienteId}`)
         .then((response) => {
           this.clientSelect = response.data[0];
-          this.paymentsSelect = this.clientSelect.payments; 
+          this.paymentsSelect = this.clientSelect.payments;
           console.log(this.payments);
           this.ModalVisible = true;
         })
@@ -93,7 +102,7 @@ export default {
         .post(`http://127.0.0.1:8000/api/eliminar/${clienteId}`)
         .then((response) => {
           this.clientes = response.data;
-          window.location.reload();
+          this.fetchClientes();
         })
         .catch((error) => {
           console.log(error);

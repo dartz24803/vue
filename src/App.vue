@@ -42,6 +42,15 @@ export default {
   data() {
     return {
       ModalVisible: false,
+      price: '',
+      money: {
+        decimal: ",",
+        thousands: ".",
+        prefix: "$ ",
+        suffix: "",
+        precision: 2,
+        masked: true,
+      },
     };
   },
 };
