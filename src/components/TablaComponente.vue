@@ -1,6 +1,15 @@
 <template>
   <div>
-    <b-table striped hover :items="clientes" :fields="fields" tbody-class="table-info" thead-class="table-dark" bordered>
+    <b-table
+      striped
+      hover
+      :items="clientes"
+      :fields="fields"
+      tbody-class="table-info"
+      thead-class="table-dark"
+      bordered
+      :key="tableController"
+    >
       <template #cell(nombre)="row">
         {{ row.item.name }}
       </template>
@@ -24,20 +33,21 @@
       </template>
       <template #cell(acciones)="row">
         <b-button variant="success" @click="editarCliente(row.item.id)">
-          Editar <i class="fas fa-edit"></i>
-        </b-button>
-        <b-button variant="danger" @click="eliminarCliente(row.item.id)">
+          Editar <i class="fas fa-edit"></i> </b-button
+        >
+        <b-button variant="danger" @click="mostrarConfirmacion(row.item.id)">
           Eliminar <i class="fas fa-trash"></i>
         </b-button>
       </template>
     </b-table>
-    
+
     <ModalVue
       v-if="ModalVisible"
       @hidden="ModalVisible = false"
       :paymentsData="modalData"
       :clientSelect="clientSelect"
       :paymentsSelect="paymentsSelect"
+      @onSubmit="onSubmit"
     />
   </div>
 </template>
@@ -45,21 +55,25 @@
 <script>
 import axios from "axios";
 import ModalVue from "./ModalVue.vue";
+import Swal from "sweetalert2/dist/sweetalert2.js";
+import "sweetalert2/dist/sweetalert2.css";
+
 export default {
   components: {
     ModalVue,
   },
   data() {
     return {
+      tableController: 1,
       fields: [
-        { key: 'nombre', label: 'Nombre' },
-        { key: 'birthday', label: 'Birthday' },
-        { key: 'phone', label: 'Phone' },
-        { key: 'email', label: 'Email' },
-        { key: 'address', label: 'Address' },
-        { key: 'payments', label: 'Payments' },
-        { key: 'total', label: 'Total' },
-        { key: 'acciones', label: 'Acciones' }
+        { key: "nombre", label: "Nombre" },
+        { key: "birthday", label: "Birthday" },
+        { key: "phone", label: "Phone" },
+        { key: "email", label: "Email" },
+        { key: "address", label: "Address" },
+        { key: "payments", label: "Payments" },
+        { key: "total", label: "Total" },
+        { key: "acciones", label: "Acciones" },
       ],
       clientes: [],
       payments: [],
@@ -71,42 +85,64 @@ export default {
   mounted() {
     this.fetchClientes();
   },
+
   methods: {
-    fetchClientes() {
-      axios
-        .get("http://127.0.0.1:8000/api/clientes")
-        .then((response) => {
-          this.clientes = response.data;
-          console.log(this.clientes)
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+    mostrarConfirmacion(clienteId) {
+      Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Esta acción no se puede deshacer",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Acción si el usuario confirma
+          this.eliminarCliente(clienteId);
+          Swal.fire({
+            position: "center",
+            icon: "success",
+            title: "Logrado!",
+            showConfirmButton: false,
+            timer: 1500,
+          });
+        }
+      });
     },
-    editarCliente(clienteId) {
-      // this.$emit("hidden");
-      axios
-        .get(`http://127.0.0.1:8000/api/buscar/${clienteId}`)
-        .then((response) => {
-          this.clientSelect = response.data[0];
-          this.paymentsSelect = this.clientSelect.payments;
-          console.log(this.payments);
-          this.ModalVisible = true;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+    async onSubmit() {
+      await this.fetchClientes();
     },
-    eliminarCliente(clienteId) {
-      axios
-        .post(`http://127.0.0.1:8000/api/eliminar/${clienteId}`)
-        .then((response) => {
-          this.clientes = response.data;
-          this.fetchClientes();
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+
+    async fetchClientes() {
+      try {
+        const { data } = await axios.get("http://127.0.0.1:8000/api/clientes");
+        this.clientes = data;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async editarCliente(clienteId) {
+      try {
+        const { data } = await axios.get(
+          `http://127.0.0.1:8000/api/buscar/${clienteId}`
+        );
+        this.clientSelect = data[0];
+        this.paymentsSelect = this.clientSelect.payments;
+        this.ModalVisible = true;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async eliminarCliente(clienteId) {
+      try {
+        const { data } = await axios.post(
+          `http://127.0.0.1:8000/api/eliminar/${clienteId}`
+        );
+        this.clientes = data;
+        this.fetchClientes();
+      } catch (error) {
+        console.log(error);
+      }
     },
   },
 };

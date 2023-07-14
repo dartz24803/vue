@@ -13,10 +13,10 @@
         <b-button @click="openModal()" variant="primary" class="btn btn-success"
           ><i class="fas fa-add fa-2x">ADD CLIENT</i></b-button
         >
-        <!--Declarar variable y emitir modal -->
-        <ModalVue v-if="ModalVisible" @hidden="ModalVisible = false" />
       </div>
-      <TablaComponente />
+      <!--Declarar variable y emitir modal -->
+      <ModalVue v-if="ModalVisible" @hidden="ModalVisible = false" @onSubmit="onSubmit" />
+      <TablaComponente :key="tableController" />
     </b-card>
   </div>
 </template>
@@ -38,11 +38,14 @@ export default {
     openModal() {
       this.ModalVisible = true;
     },
+    onSubmit(){
+      this.tableController++
+    }
   },
   data() {
     return {
       ModalVisible: false,
-      price: '',
+      price: "",
       money: {
         decimal: ",",
         thousands: ".",
@@ -51,6 +54,7 @@ export default {
         precision: 2,
         masked: true,
       },
+      tableController: 1
     };
   },
 };

@@ -1,7 +1,7 @@
 <template>
   <b-modal
     id="modal-lg"
-    size="lg"
+    size="xl"
     ref="ModalClient"
     @hidden="$emit('hidden')"
     hide-footer
@@ -15,9 +15,7 @@
       <h3>Personal information <i class="fas fa-user-plus"></i></h3>
       <input type="hidden" id="id" v-model="client.id" /><br />
       <ValidationProvider v-slot="v" rules="required|alpha" class="mb-4">
-        <b-form-group label="Name:"
-              valid-feedback="Thank you!"
->
+        <b-form-group label="Name:" valid-feedback="Thank you!">
           <span class="text-danger mb-4">{{ v.errors[0] }}</span>
           <b-form-input
             type="text"
@@ -41,16 +39,20 @@
           /><br />
         </b-form-group>
       </ValidationProvider>
-      <b-form-group label="Phone:">
-        <b-form-input
-          type="text"
-          id="phone"
-          v-model="client.phone"
-          placeholder="Phone"
-          v-mask="'(+51) ###-###-##'"
-          required
-        /><br />
-      </b-form-group>
+      <ValidationProvider v-slot="v" rules="required" class="mb-4">
+        <b-form-group label="Phone:">
+          <span class="text-danger mb-4">{{ v.errors[0] }}</span>
+          <b-form-input
+            type="text"
+            id="phone"
+            v-model="client.phone"
+            placeholder="Phone"
+            v-mask="'(+51) ###-###-###'"
+            :class="{ 'is-invalid': v.errors.length > 0 }"
+            required
+          /><br />
+        </b-form-group>
+      </ValidationProvider>
 
       <ValidationProvider v-slot="v" rules="required|email" class="mb-4">
         <b-form-group label="Email:">
@@ -102,14 +104,18 @@
             /><br />
           </b-form-group>
         </ValidationProvider>
+        <ValidationProvider v-slot="v" rules="required|positive" class="mb-4">
           <b-form-group label="Amount:">
-        <money
-          v-model="item.amount"
-          v-bind="money"
-          class="form-control"
-        ></money>
-        {{ price }}
+            <span class="text-danger mb-4">{{ v.errors[0] }}</span>
+            <money
+              v-model.lazy="item.amount"
+              v-bind="money"
+              class="form-control"
+            ></money>
+            {{ price }}
           </b-form-group>
+        </ValidationProvider>
+
         <br />
         <ValidationProvider v-slot="v" rules="required" class="mb-4">
           <b-form-group label="Date:">
@@ -141,6 +147,9 @@ import axios from "axios";
 import { ValidationProvider } from "vee-validate";
 import { extend } from "vee-validate";
 import { required, alpha, email, length } from "vee-validate/dist/rules";
+import { Money } from "v-money";
+import Swal from "sweetalert2/dist/sweetalert2.js";
+import "sweetalert2/dist/sweetalert2.css";
 
 // Override the default message.
 extend("length", {
@@ -151,7 +160,7 @@ extend("length", {
 // Override the default message.
 extend("email", {
   ...email,
-  message: "This field is email valid",
+  message: "This field requires a email valid",
 });
 
 // Override the default message.
@@ -165,6 +174,7 @@ extend("required", {
   ...required,
   message: "This field is required",
 });
+
 extend("positive", {
   validate: (value) => {
     return value >= 0;
@@ -176,6 +186,7 @@ export default {
   name: "ModalVue",
   components: {
     ValidationProvider,
+    Money,
   },
   computed: {
     areAllFieldsFilled() {
@@ -190,6 +201,7 @@ export default {
   props: ["clientSelect", "paymentsSelect"],
   data() {
     return {
+      value: "null",
       myInputModel: "",
       modalVisible: false,
       payments: [{ cod: 0, id: null, amount: null, date: null }],
@@ -221,7 +233,7 @@ export default {
       };
       this.$emit("open-modal", paymentsData);
     },
-    handleSubmit(event) {
+    async handleSubmit(event) {
       event.preventDefault();
       // Convertir los valores de id a enteros en los pagos
       const parsedPayments = this.payments.map((payment) => ({
@@ -230,7 +242,6 @@ export default {
         amount: payment.amount,
         date: new Date(payment.date).toISOString().slice(0, 10), // Corregir el formato de fecha
       }));
-      console.log(parsedPayments);
       // Crear un objeto con los datos del formulario
       const formData = {
         id: this.client.id,
@@ -249,22 +260,34 @@ export default {
       }
 
       if (valores.every((valor) => valor === "")) {
-        axios
-          .post("http://127.0.0.1:8000/api/crearcliente", formData)
-          .then((response) => {
-            const client = response.data;
-            console.log(client);
-            this.modalVisible = false;
-            this.$emit("hidden");
-
-            this.$parent.fetchClientes();
-          })
-          .catch((error) => {
-            // Manejar el error si ocurre
-            console.error(error);
+        try {
+          const response = await axios.post(
+            "http://127.0.0.1:8000/api/crearcliente",
+            formData
+          );
+          const client = response.data;
+          this.$emit("onSubmit");
+          console.log(client);
+          this.modalVisible = false;
+          this.$emit("hidden");
+          Swal.fire({
+            position: "center",
+            icon: "success",
+            title: "Logrado!",
+            showConfirmButton: false,
+            timer: 1500,
           });
+        } catch (error) {
+          console.log(error);
+        }
       } else {
-        alert("Revisar formulario");
+        Swal.fire({
+          position: "center",
+          icon: "error",
+          title: "Revise los datos del formulario",
+          showConfirmButton: false,
+          timer: 1500,
+        });
       }
     },
 
@@ -287,10 +310,16 @@ export default {
           .then((response) => {
             const client = response.data;
             console.log(client);
+            Swal.fire({
+              position: "center",
+              icon: "success",
+              title: "Logrado!",
+              showConfirmButton: false,
+              timer: 1500,
+            });
           })
           .catch((error) => {
-            // Manejar el error si ocurre
-            console.error(error);
+            console.log(error);
           });
       }
     },

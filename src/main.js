@@ -9,8 +9,8 @@ import VueMask from 'v-mask'
 
 Vue.use(VueMask);
 Vue.use(money, {precision: 4})
-Vue.config.productionTip = false
 Vue.use(BootstrapVue)
+Vue.config.productionTip = false
 
 new Vue({
   render: h => h(App),
